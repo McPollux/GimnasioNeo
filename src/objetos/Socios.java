@@ -9,8 +9,17 @@ public class Socios extends Clientes{
         this.cuota = 30;
     }
 
+    public float getCuota() {
+        return cuota;
+    }
+
+    public void setCuota(float cuota) {
+        this.cuota = cuota;
+    }
+
     @Override
     public void importeUso() {
+
 
     }
 }

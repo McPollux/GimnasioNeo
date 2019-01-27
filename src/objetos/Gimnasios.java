@@ -51,4 +51,49 @@ public class Gimnasios {
     public void setClientes(ArrayList<Clientes> clientes) {
         this.clientes = clientes;
     }
+
+    public void printSocios(){
+        for (Clientes cl : clientes){
+            if(cl instanceof Socios){
+                System.out.println("<-----------SOCIO---------->");
+                System.out.println("DNI: "+cl.getDni());
+                System.out.println("Nombre: "+cl.getNombre());
+                System.out.println("Numero de usos: "+cl.getUsos().size());
+                System.out.println("Cuota mensual: "+((Socios)cl).getCuota());
+                System.out.println("<-------------------------->");
+            }
+        }
+    }
+
+    public void printUsuarios(){
+        for (Clientes cl : clientes){
+            if(cl instanceof Socios){
+                System.out.println("<-----------USUARIO---------->");
+                System.out.println("DNI: "+cl.getDni());
+                System.out.println("Nombre: "+cl.getNombre());
+                System.out.println("Numero de usos: "+cl.getUsos().size());
+                System.out.println("<---------------------------->");
+            }
+        }
+    }
+
+    public byte getNumSocios(){
+        byte i = 0;
+        for (Clientes cl : clientes){
+            if(cl instanceof Socios){
+                i++;
+            }
+        }
+        return i;
+    }
+
+    public byte getNumUsuarios(){
+        byte i = 0;
+        for (Clientes cl : clientes){
+            if(cl instanceof Socios){
+                i++;
+            }
+        }
+        return i;
+    }
 }

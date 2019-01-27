@@ -37,5 +37,5 @@ public abstract class Clientes {
         this.usos = usos;
     }
 
-    public abstract void importeUso();
+    public abstract float importeUso(Actividades actividad, long horaInicio, long horaFin);
 }

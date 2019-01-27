@@ -5,7 +5,6 @@ import org.neodatis.odb.ODB;
 import org.neodatis.odb.ODBFactory;
 import org.neodatis.odb.ODBRuntimeException;
 import org.neodatis.odb.Objects;
-import org.neodatis.odb.core.NeoDatisError;
 import org.neodatis.odb.core.query.criteria.Where;
 import org.neodatis.odb.impl.core.query.criteria.CriteriaQuery;
 
@@ -89,7 +88,7 @@ public class Altas implements iFace {
         ODB odb = ODBFactory.openClient("localhost", 1227, "gimnasio");
         Actividades actividad = null;
         Gimnasios gym = null;
-        //Consultar.actividades();
+        Consultas.actividades();
 
         do {
             System.out.println("Introduce el nombre de la actividad:");
@@ -102,7 +101,7 @@ public class Altas implements iFace {
             }
         } while (actividad == null);
 
-        //Consultar.gimnasios();
+        Consultas.gimnasios();
 
         do {
             System.out.println("Introduce el CIF del gimnasio:");
@@ -136,6 +135,10 @@ public class Altas implements iFace {
                 System.out.println("Operacion cancelada!");
                 break;
         }
+
+        Objects<Gimnasios> objGym = odb.getObjects(new CriteriaQuery(Gimnasios.class, Where.contain("actividades", actividad)));
+        System.out.println(objGym.getFirst().getNombre());
+
         odb.close();
     }
 
@@ -144,7 +147,7 @@ public class Altas implements iFace {
         Gimnasios gym = null;
         Clientes cliente;
 
-        //Consultas.gimnasios();
+        Consultas.gimnasios();
         do {
             System.out.println("Introduce el CIF del gimnasio:");
             String cif = lee.readLine();
@@ -210,7 +213,7 @@ public class Altas implements iFace {
         Usuarios usuario;
         Actividades actividad;
 
-        //Consultas.gimnasios();
+        Consultas.gimnasios();
         do {
             System.out.println("Introduce el CIF del gimnasio:");
             String cif = lee.readLine();
@@ -234,11 +237,7 @@ public class Altas implements iFace {
         if (gym.getActividades().size()==0){
             System.out.println("Este gimnasio no tiene actividades dadas de alta!");
         } else {
-            do {
-                System.out.println("Introduce el nombre de la actividad:");
-                String nombre = lee.readLine();
-                actividad = obtenerActividad(gym.getActividades(), nombre);
-            }while(actividad==null);
+            actividad = extraerActividad(gym);
 
             System.out.println("<---------------------->");
             System.out.println("Numero de socios: " +gym.getNumSocios());
@@ -285,6 +284,8 @@ public class Altas implements iFace {
                             case 'x':
                             case 'c':
                                 Usos uso = new Usos(new Date(), fin, actividad);
+                                long horaInicio = new Time(uso.getFecha().getTime()).getTime();
+                                uso.setImporteUso(socio.importeUso(actividad, horaInicio, fin.getTime()));
                                 socio.getUsos().add(uso);
                                 odb.store(socio);
                                 odb.commit();
@@ -333,7 +334,8 @@ public class Altas implements iFace {
                             case 'x':
                             case 'c':
                                 Usos uso = new Usos(new Date(), fin, actividad);
-                                usuario.getUsos().add(uso);
+                                long horaInicio = new Time(uso.getFecha().getTime()).getTime();
+                                uso.setImporteUso(usuario.importeUso(actividad, horaInicio, fin.getTime()));
                                 odb.store(usuario);
                                 odb.commit();
                                 break;
@@ -348,6 +350,16 @@ public class Altas implements iFace {
             }
         }
         odb.close();
+    }
+
+    private static Actividades extraerActividad(Gimnasios gym) throws IOException {
+        Actividades actividad;
+        do {
+            System.out.println("Introduce el nombre de la actividad:");
+            String nombre = lee.readLine();
+            actividad = obtenerActividad(gym.getActividades(), nombre);
+        }while(actividad==null);
+        return actividad;
     }
 
     public static Actividades obtenerActividad(ArrayList<Actividades> actividades, String nombre) {

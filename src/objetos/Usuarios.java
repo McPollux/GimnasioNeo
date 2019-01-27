@@ -7,7 +7,10 @@ public class Usuarios extends Clientes {
     }
 
     @Override
-    public void importeUso() {
+    public float importeUso(Actividades actividad, long horaInicio, long horaFin) {
 
+        int horas = (int) (horaFin - horaInicio) / 1000 * 60 * 60;
+
+        return horas * actividad.getCuota();
     }
 }

@@ -31,8 +31,18 @@ public class Menu implements iFace {
         return b;
     }
 
-    public static byte consultas() throws IOException {
+    public static byte bajas() throws IOException {
         System.out.println("Elije una opción de consulta:\n"
+                + "[1] Baja de un gimnasio\n"
+                + "[2] Baja de una actividad\n"
+                + "[3] Baja de un socio\n"
+                + "[0] Salir");
+        byte b = Byte.parseByte(lee.readLine());
+        return b;
+    }
+
+    public static byte consultas() throws IOException {
+        System.out.println("Elige una opción de consulta:\n"
                 + "[1] Consultar de todos los autores italianos\n"
                 + "[2] Consultar libros de un autor entre 2 fechas\n"
                 + "[3] Consultar autores españoles menores de 60 años\n"

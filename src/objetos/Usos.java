@@ -7,6 +7,7 @@ public class Usos {
     private Date fecha;
     private Time horaFin;
     private Actividades actividad;
+    private float importeUso;
 
     public Usos(Date fecha, Time horaFin, Actividades actividad) {
         this.fecha = fecha;
@@ -36,5 +37,13 @@ public class Usos {
 
     public void setActividad(Actividades actividad) {
         this.actividad = actividad;
+    }
+
+    public float getImporteUso() {
+        return importeUso;
+    }
+
+    public void setImporteUso(float importeUso) {
+        this.importeUso = importeUso;
     }
 }

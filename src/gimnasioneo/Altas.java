@@ -5,16 +5,19 @@ import org.neodatis.odb.ODB;
 import org.neodatis.odb.ODBFactory;
 import org.neodatis.odb.ODBRuntimeException;
 import org.neodatis.odb.Objects;
-import org.neodatis.odb.core.NeoDatisError;
 import org.neodatis.odb.core.query.criteria.Where;
 import org.neodatis.odb.impl.core.query.criteria.CriteriaQuery;
 
 import java.io.IOException;
+import java.sql.Time;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Altas implements iFace {
 
-    public static void main() throws IOException {
+    public static void main() throws IOException, ParseException {
 
         byte op;
 
@@ -35,7 +38,7 @@ public class Altas implements iFace {
                 cliente();
                 break;
             case 5:
-                //uso();
+                uso();
                 break;
             default:
                 System.out.println("Opcion incorrecta!!");
@@ -65,13 +68,29 @@ public class Altas implements iFace {
         System.out.println("Introduce el nombre de la actividad:");
         String nombre = lee.readLine();
 
-        System.out.println("Introduce el tipo de actividad:");
-        String tipo = lee.readLine();
+        System.out.println("Introduce el tipo de actividad: " +
+                "\n[1] Libre+" +
+                "\n[2} Grupo+" +
+                "\n[3] Alquiler");
+        String tipo = null;
+        switch (Integer.parseInt(lee.readLine())) {
+            case 1:
+                tipo = "Libre";
+                break;
+            case 2:
+                tipo = "Grupo";
+                break;
+            case 3:
+                tipo = "Alquiler";
+                break;
+            default:
+                System.exit(0);
+        }
 
         System.out.println("Introduce la cuota de la actividad:");
         float cuota = Float.parseFloat(lee.readLine());
 
-        System.out.println("Introduce el descuento de la actividad para socios:");
+        System.out.println("Introduce el descuento de la actividad para socios: [Sobre 1.00]");
         float descuento = Float.parseFloat(lee.readLine());
 
         Actividades actividad = new Actividades(nombre, tipo, cuota, descuento);
@@ -85,7 +104,7 @@ public class Altas implements iFace {
         ODB odb = ODBFactory.openClient("localhost", 1227, "gimnasio");
         Actividades actividad = null;
         Gimnasios gym = null;
-        //Consultar.actividades();
+        Consultas.actividades();
 
         do {
             System.out.println("Introduce el nombre de la actividad:");
@@ -98,7 +117,7 @@ public class Altas implements iFace {
             }
         } while (actividad == null);
 
-        //Consultar.gimnasios();
+        Consultas.gimnasios();
 
         do {
             System.out.println("Introduce el CIF del gimnasio:");
@@ -109,7 +128,7 @@ public class Altas implements iFace {
             } catch (ODBRuntimeException e) {
                 System.out.println("Gimmasnio no encontrado en la base de datos, vuelve a intentarlo");
             }
-        } while (gym  == null);
+        } while (gym == null);
 
         System.out.println("¿Estas seguro? [S|N]");
         char respuesta = lee.readLine().toLowerCase().charAt(0);
@@ -130,8 +149,12 @@ public class Altas implements iFace {
                 break;
             default:
                 System.out.println("Operacion cancelada!");
-                return;
+                break;
         }
+
+        Objects<Gimnasios> objGym = odb.getObjects(new CriteriaQuery(Gimnasios.class, Where.contain("actividades", actividad)));
+        System.out.println(objGym.getFirst().getNombre());
+
         odb.close();
     }
 
@@ -140,7 +163,7 @@ public class Altas implements iFace {
         Gimnasios gym = null;
         Clientes cliente;
 
-        //Consultas.gimnasios();
+        Consultas.gimnasios();
         do {
             System.out.println("Introduce el CIF del gimnasio:");
             String cif = lee.readLine();
@@ -151,7 +174,7 @@ public class Altas implements iFace {
                 System.out.println("Gimmasnio no encontrado en la base de datos, vuelve a intentarlo");
             }
 
-        } while (gym  == null);
+        } while (gym == null);
 
         System.out.println("Introduce el dni del cliente:");
         String dni = lee.readLine();
@@ -193,46 +216,39 @@ public class Altas implements iFace {
                 break;
             default:
                 System.out.println("Operacion cancelada!");
-                return;
+                break;
         }
         odb.close();
     }
 
-    public static void usos() throws IOException {
+    public static void uso() throws IOException, ParseException {
         ODB odb = ODBFactory.openClient("localhost", 1227, "gimnasio");
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         Gimnasios gym = null;
-        Clientes cliente;
+        Socios socio;
+        Usuarios usuario;
+        Actividades actividad;
 
-        //Consultas.gimnasios();
-        do {
-            System.out.println("Introduce el CIF del gimnasio:");
-            String cif = lee.readLine();
+        Consultas.gimnasios();
+        gym = getGimnasios(odb, gym);
 
-            try {
-                gym = (Gimnasios) odb.getObjects(new CriteriaQuery(Gimnasios.class, Where.iequal("cif", cif))).getFirst();
-            } catch (ODBRuntimeException e) {
-                System.out.println("Gimmasnio no encontrado en la base de datos, vuelve a intentarlo");
-            }
-
-        } while (gym  == null);
-
-        for (Actividades ac : gym.getActividades()){
+        for (Actividades ac : gym.getActividades()) {
             System.out.println("<--------------------------->");
-            System.out.println("Nombre: "+ac.getNombre()+
-                               "Tipo: "+ac.getTipo()+
-                               "Cuota: "+ac.getCuota());
+            System.out.println("Nombre: " + ac.getNombre() +
+                    "Tipo: " + ac.getTipo() +
+                    "Cuota: " + ac.getCuota());
             System.out.println("<--------------------------->");
         }
 
-        if (gym.getActividades().size()==0){
+        if (gym.getActividades().size() == 0) {
             System.out.println("Este gimnasio no tiene actividades dadas de alta!");
         } else {
-            System.out.println("Introduce el nombre de la actividad:");
-            String nombre = lee.readLine();
+            actividad = extraerActividad(gym);
 
-            Actividades actividad = obtenerActividad(gym.getActividades(), nombre);
-
-            System.out.println("¿Este cliente es un socio o un usuario? [S|U]");
+            System.out.println("<---------------------->");
+            System.out.println("Numero de socios: " + gym.getNumSocios());
+            System.out.println("Numero de usuarios: " + gym.getNumUsuarios());
+            System.out.println("¿El cliente es un socio o un usuario? [S|U]");
             char respuesta = lee.readLine().toLowerCase().charAt(0);
 
             switch (respuesta) {
@@ -245,10 +261,46 @@ public class Altas implements iFace {
                 case 'z':
                 case 'x':
                 case 'c':
-                    cliente = new Socios(dni, nombre);
-                    gym.getClientes().add(cliente);
-                    odb.store(gym);
-                    odb.commit();
+                    if (gym.getNumSocios() == 0) {
+                        System.out.println("Este gimnasio no tiene socios dados de alta");
+                    } else {
+                        gym.printSocios();
+
+                        do {
+                            System.out.println("Introduce el DNI del socio:");
+                            String dni = lee.readLine();
+
+                            socio = obtenerSocio(gym.getClientes(), dni);
+                        } while (socio == null);
+
+                        System.out.println("Introduce la hora de salida: [HH:mm]");
+                        Time fin = new Time(sdf.parse(lee.readLine()).getTime());
+
+                        System.out.println("¿Estas seguro? [S|N]");
+                        char respuesta2 = lee.readLine().toLowerCase().charAt(0);
+
+                        switch (respuesta2) {
+                            case 'q':
+                            case 'w':
+                            case 'e':
+                            case 'a':
+                            case 's':
+                            case 'd':
+                            case 'z':
+                            case 'x':
+                            case 'c':
+                                Usos uso = new Usos(new Date(), fin, actividad);
+                                long horaInicio = new Time(uso.getFecha().getHours()).getTime();
+                                uso.setImporteUso(socio.importeUso(actividad, horaInicio, fin.getTime()));
+                                socio.getUsos().add(uso);
+                                odb.store(socio);
+                                odb.commit();
+                                break;
+                            default:
+                                System.out.println("Operacion cancelada!");
+                                break;
+                        }
+                    }
                     break;
                 case '6':
                 case '7':
@@ -259,26 +311,105 @@ public class Altas implements iFace {
                 case 'h':
                 case 'j':
                 case 'k':
-                    cliente = new Usuarios(dni, nombre);
-                    gym.getClientes().add(cliente);
-                    odb.store(gym);
-                    odb.commit();
-                    break;
+                    if (gym.getNumUsuarios() == 0) {
+                        System.out.println("Este gimnasio no tiene usuarios dados de alta");
+                    } else {
+                        gym.printUsuarios();
+
+                        do {
+                            System.out.println("Introduce el DNI del usuario:");
+                            String dni = lee.readLine();
+
+                            usuario = obtenerUsuario(gym.getClientes(), dni);
+                        } while (usuario == null);
+
+                        System.out.println("Introduce la hora de salida: [HH:mm]");
+                        Time fin = new Time(sdf.parse(lee.readLine()).getTime());
+
+                        System.out.println("¿Estas seguro? [S|N]");
+                        char respuesta2 = lee.readLine().toLowerCase().charAt(0);
+
+                        switch (respuesta2) {
+                            case 'q':
+                            case 'w':
+                            case 'e':
+                            case 'a':
+                            case 's':
+                            case 'd':
+                            case 'z':
+                            case 'x':
+                            case 'c':
+                                Usos uso = new Usos(new Date(), fin, actividad);
+                                long horaInicio = new Time(uso.getFecha().getTime()).getTime();
+                                uso.setImporteUso(usuario.importeUso(actividad, horaInicio, fin.getTime()));
+                                odb.store(usuario);
+                                odb.commit();
+                                break;
+                            default:
+                                System.out.println("Operacion cancelada!");
+                                return;
+                        }
+                    }
                 default:
                     System.out.println("Operacion cancelada!");
-                    return;
+                    break;
             }
         }
         odb.close();
     }
 
+    private static Gimnasios getGimnasios(ODB odb, Gimnasios gym) throws IOException {
+        do {
+            System.out.println("Introduce el CIF del gimnasio:");
+            String cif = lee.readLine();
+
+            try {
+                gym = (Gimnasios) odb.getObjects(new CriteriaQuery(Gimnasios.class, Where.iequal("cif", cif))).getFirst();
+            } catch (ODBRuntimeException e) {
+                System.out.println("Gimmasnio no encontrado en la base de datos, vuelve a intentarlo");
+            }
+
+        } while (gym == null);
+        return gym;
+    }
+
+    private static Actividades extraerActividad(Gimnasios gym) throws IOException {
+        Actividades actividad;
+        do {
+            System.out.println("Introduce el nombre de la actividad:");
+            String nombre = lee.readLine();
+            actividad = obtenerActividad(gym.getActividades(), nombre);
+        } while (actividad == null);
+        return actividad;
+    }
+
     public static Actividades obtenerActividad(ArrayList<Actividades> actividades, String nombre) {
-        for (Actividades ac : actividades){
-            if (ac.getNombre().equalsIgnoreCase(nombre)){
+        for (Actividades ac : actividades) {
+            if (ac.getNombre().equalsIgnoreCase(nombre)) {
                 return ac;
             }
         }
         System.out.println("Nombre de la actividad mal intrducido!!");
+        return null;
+    }
+
+    public static Socios obtenerSocio(ArrayList<Clientes> clientes, String dni) {
+        for (Clientes cli : clientes) {
+            if (cli instanceof Socios && cli.getDni().equalsIgnoreCase(dni)) {
+                return (Socios) cli;
+            }
+        }
+        System.out.println("DNI del socio mal introducido!!");
+        return null;
+    }
+
+    public static Usuarios obtenerUsuario(ArrayList<Clientes> clientes, String dni) {
+        for (Clientes cli : clientes) {
+            if (cli instanceof Usuarios && cli.getDni().equalsIgnoreCase(dni)) {
+                return (Usuarios) cli;
+            }
+        }
+        System.out.println("DNI del socio mal introducido!!");
         return null;
     }
 }

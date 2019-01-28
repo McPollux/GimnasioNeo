@@ -1,6 +1,6 @@
 package objetos;
 
-public class Socios extends Clientes{
+public class Socios extends Clientes {
     private float cuota;
 
 
@@ -9,8 +9,18 @@ public class Socios extends Clientes{
         this.cuota = 30;
     }
 
-    @Override
-    public void importeUso() {
+    public float getCuota() {
+        return cuota;
+    }
 
+    public void setCuota(float cuota) {
+        this.cuota = cuota;
+    }
+
+    @Override
+    public float importeUso(Actividades actividad, long horaInicio, long horaFin) {
+        int horas = (int)(horaFin - horaInicio)/(1000*60*60);
+
+        return actividad.getCuota()*horas*(1-actividad.getDescuento());
     }
 }

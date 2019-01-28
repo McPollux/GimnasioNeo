@@ -121,7 +121,7 @@ public class Consultas {
     public static boolean usuarios() {
         ODB odb = ODBFactory.openClient("localhost", 1227, "gimnasio");
 
-        Objects<Usuarios> usuarios = odb.getObjects(Socios.class);
+        Objects<Usuarios> usuarios = odb.getObjects(Usuarios.class);
 
         for (Usuarios us : usuarios){
             System.out.println("<-----------SOCIO---------->");
